@@ -1,3 +1,13 @@
+Data/
+habitat-lab/
+habitat-sim-/
+*.mp4
+*.mdb
+*.swp
+events.out.*
+download_mp.py
+*_backup*
+
 # IDE
 .idea/
 .vscode/

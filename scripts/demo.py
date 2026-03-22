@@ -12,7 +12,7 @@ import re
 
 # --- Configuration ---
 
-DATA_PATH = "/home/qw/proj/HA-VLN/Data/" 
+DATA_PATH = "/home/jojo/gitlib/HA-VLN/Data/" 
 SCENE_DATASETS_PATH = os.path.join(DATA_PATH, "scene_datasets/mp3d")
 HAPS_DATA_PATH = os.path.join(DATA_PATH, "HAPS2_0")
 HUMAN_ANNOTATIONS_PATH = os.path.join(DATA_PATH, "Multi-Human-Annotations/human_motion.json")
