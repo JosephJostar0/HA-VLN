@@ -223,7 +223,7 @@ class BaseVLNCETrainer(BaseILTrainer):
             rgb_frames,
         )
 
-    def _eval_checkpoint(
+    def _eval_checkpoint( # flag0, 评估时会保存视频
         self,
         checkpoint_path: str,
         writer: TensorboardWriter,
@@ -342,7 +342,7 @@ class BaseVLNCETrainer(BaseILTrainer):
             outputs = envs.step([a[0].item() for a in actions])
             observations, _, dones, infos = [list(x) for x in zip(*outputs)]
 
-            if config.TASK_CONFIG.SIMULATOR.HUMAN_COUNTING:
+            if config.TASK_CONFIG.SIMULATOR.HUMAN_COUNTING: # flag0, 如果开启了人类感知，则先把人类渲染到图片中
                 detected_img = self.detector(observations, 'human', current_episodes, stats_info)
                 # print(stats_info[0].keys())
 
@@ -359,10 +359,10 @@ class BaseVLNCETrainer(BaseILTrainer):
                         observations_ = deepcopy(observations)
                         for k in range(len(observations)):
                             observations_[k]['rgb'] = detected_img[k]
-                        frame = observations_to_image(observations_[i], infos[i])
+                        frame = observations_to_image(observations_[i], infos[i]) # flag0
                     else:
                         frame = observations_to_image(observations[i], infos[i])
-                    frame = append_text_to_image(
+                    frame = append_text_to_image( # flag0, 在图片上添加指令文本
                         frame, current_episodes[i].instruction.instruction_text
                     )
                     rgb_frames[i].append(frame)
@@ -389,7 +389,7 @@ class BaseVLNCETrainer(BaseILTrainer):
                     )
 
                 if len(config.VIDEO_OPTION) > 0:
-                    generate_video(
+                    generate_video( # flag0, 生成视频并保存
                         video_option=config.VIDEO_OPTION,
                         video_dir=config.VIDEO_DIR,
                         images=rgb_frames[i],

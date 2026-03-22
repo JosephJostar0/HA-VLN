@@ -1,3 +1,4 @@
+import math
 from typing import Any, Dict, List
 
 from gym import spaces
@@ -40,3 +41,11 @@ def single_frame_box_shape(box: spaces.Box) -> spaces.Box:
         shape=box.shape[1:],
         dtype=box.high.dtype,
     )
+
+def get_camera_orientations12():
+    base_angle_deg = 30
+    base_angle_rad = math.pi / 6
+    orient_dict = {}
+    for k in range(1,12):
+        orient_dict[str(base_angle_deg*k)] = [0.0, base_angle_rad*k, 0.0]
+    return orient_dict

@@ -10,6 +10,15 @@ from habitat.core.simulator import Observations
 from habitat_baselines.rl.ddppo.policy import resnet
 from habitat_baselines.rl.ddppo.policy.resnet_policy import ResNetEncoder
 from torch import Tensor
+import clip
+
+if not hasattr(clip, "load"):
+    raise ImportError(
+        "The installed `clip` package is not OpenAI CLIP. "
+        # pip install ftfy regex tqdm
+        # pip install git+https://github.com/openai/CLIP.git --no-deps
+        "Please run: `pip install ftfy regex tqdm` and then `pip install git+https://github.com/openai/CLIP.git --no-deps`"
+    )
 
 from vlnce_baselines.common.utils import single_frame_box_shape
 
@@ -227,3 +236,39 @@ class TorchVisionResNet50(TorchVisionResNet):
 class TorchVisionResNet18(TorchVisionResNet):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, resnet_version="resnet18", **kwargs)
+
+class CLIPEncoder(nn.Module):
+    r"""
+    Takes in observations and produces an embedding of the rgb component.
+
+    Args:
+        observation_space: The observation_space of the agent
+        output_size: The size of the embedding vector
+        device: torch.device
+    """
+
+    def __init__(
+        self, device,
+    ):
+        super().__init__()
+        self.model, _ = clip.load("ViT-B/32", device=device)
+        for param in self.model.parameters():
+            param.requires_grad_(False)
+        self.model.eval()
+
+        from torchvision import transforms
+        self.rgb_transform = torch.nn.Sequential(
+            transforms.ConvertImageDtype(torch.float),
+            transforms.Normalize([0.48145466, 0.4578275, 0.40821073], [0.26862954, 0.26130258, 0.27577711]),
+            )
+
+    def forward(self, observations):
+        r"""Sends RGB observation through the TorchVision ResNet50 pre-trained
+        on ImageNet. Sends through fully connected layer, activates, and
+        returns final embedding.
+        """
+        rgb_observations = observations["rgb"].permute(0, 3, 1, 2)
+        rgb_observations = self.rgb_transform(rgb_observations)
+        output = self.model.encode_image(rgb_observations.contiguous())
+
+        return output.float() # to fp32

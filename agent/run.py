@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import distutils.version # noqa: F401
+# from setuptools import distutils
 import argparse
 import os
 import random

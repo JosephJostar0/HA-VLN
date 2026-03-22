@@ -74,6 +74,29 @@ class HAVLNCEDaggerEnv(VLNCEDaggerEnv):
 
         return observations
 
+    # Mar/21/26
+    def get_agent_info(self):
+        r"""用于给 ETPNav 训练器返回 Agent 的实时物理状态。
+        """
+        # 从底层的 Habitat 模拟器获取 Agent 状态
+        agent_state = self._env.sim.get_agent_state()
+
+        # --- 核心数学转换：Quaternion -> Heading ---
+        import quaternion
+        import numpy as np
+
+        # 将四元数转换为欧拉角 (Euler Angles)
+        # 在 Habitat 坐标系中，Y 轴通常是垂直向上的，所以我们取绕 Y 轴的旋转角度 (Yaw)
+        euler_angles = quaternion.as_euler_angles(agent_state.rotation)
+        heading = euler_angles[1]  # index 1 通常对应 Yaw/Heading
+        # --------------------------------------------
+
+        return {
+            "position": agent_state.position,
+            "heading": heading,
+        }
+    # Mar/21/26
+
 
 @baseline_registry.register_env(name="VLNCEInferenceEnv")
 class VLNCEInferenceEnv(habitat.RLEnv):

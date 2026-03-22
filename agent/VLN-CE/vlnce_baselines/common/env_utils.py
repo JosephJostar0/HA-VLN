@@ -4,6 +4,7 @@ from typing import List, Optional, Type, Union
 import habitat
 from habitat import Config, Env, RLEnv, VectorEnv, make_dataset
 from habitat.core.dataset import ALL_SCENES_MASK
+from habitat_baselines.rl.ddppo.algo.ddp_utils import SLURM_JOBID
 from habitat_baselines.utils.env_utils import make_env_fn
 
 
@@ -107,3 +108,20 @@ def construct_envs_auto_reset_false(
     config: Config, env_class: Type[Union[Env, RLEnv]]
 ) -> VectorEnv:
     return construct_envs(config, env_class, auto_reset_done=False)
+
+def is_slurm_batch_job() -> bool:
+    r"""Heuristic to determine if a slurm job is a batch job or not. Batch jobs
+    will have a job name that is not a shell unless the user specifically set the job
+    name to that of a shell. Interactive jobs have a shell name as their job name.
+    """
+    return is_slurm_job() and os.environ.get("SLURM_JOB_NAME", None) not in (
+        None,
+        "bash",
+        "zsh",
+        "fish",
+        "tcsh",
+        "sh",
+    )
+
+def is_slurm_job() -> bool:
+    return SLURM_JOBID is not None

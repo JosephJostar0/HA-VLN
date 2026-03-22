@@ -3,5 +3,6 @@ from vlnce_baselines import (
     ddppo_waypoint_trainer,
     recollect_trainer,
 )
+from vlnce_baselines.etpnav_trainer import DaggerTrainer as ETPNavTrainer
 from vlnce_baselines.common import environments
-from vlnce_baselines.models import cma_policy, seq2seq_policy, waypoint_policy
+from vlnce_baselines.models import cma_policy, seq2seq_policy, waypoint_policy, etpnav_policy

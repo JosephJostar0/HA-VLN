@@ -24,6 +24,8 @@ _C.VIDEO_OPTION = []  # options: "disk", "tensorboard"
 _C.VIDEO_DIR = "VLN-CE/data/videos/debug"
 _C.TENSORBOARD_DIR = "VLN-CE/data/tensorboard_dirs/debug"
 _C.RESULTS_DIR = "VLN-CE/data/checkpoints/pretrained/evals"
+# added on Mar20_2026
+_C.local_rank = 0
 
 # ----------------------------------------------------------------------------
 # EVAL CONFIG
@@ -173,6 +175,14 @@ _C.RL.POLICY.OBS_TRANSFORMS.CENTER_CROPPER_PER_SENSOR.SENSOR_CROPS = [
     ("rgb", (224, 224)),
     ("depth", (256, 256)),
 ]
+# --- 为 ETPNav 补充缺失的图像缩放配置 ---
+_C.RL.POLICY.OBS_TRANSFORMS.RESIZER_PER_SENSOR = CN()
+_C.RL.POLICY.OBS_TRANSFORMS.RESIZER_PER_SENSOR.SIZES = [
+    ("rgb", (224, 224)),
+    ("depth", (256, 256)),
+]
+# ------------------------------------------
+
 # ----------------------------------------------------------------------------
 # PROXIMAL POLICY OPTIMIZATION (PPO)
 # ----------------------------------------------------------------------------

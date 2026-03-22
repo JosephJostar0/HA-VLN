@@ -284,7 +284,7 @@ if __name__ == "__main__":
     if not os.path.exists(output_path):
         os.mkdir(output_path)
         
-    with multiprocessing.Pool(processes=8) as pool:  
+    with multiprocessing.Pool(processes=1) as pool:  
 
         process_scan_partial = partial(process,
                                        viewpoints=human_motion_data)   
