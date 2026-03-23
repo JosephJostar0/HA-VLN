@@ -7,6 +7,8 @@ habitat-sim-/
 events.out.*
 download_mp.py
 *_backup*
+agent/VLN-CE/bert_config/
+agent/VLN-CE/pretrained/
 
 # IDE
 .idea/
