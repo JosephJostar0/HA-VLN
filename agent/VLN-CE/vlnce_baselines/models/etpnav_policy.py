@@ -40,6 +40,15 @@ class PolicyViewSelectionETP(ILPolicy):
         action_space: Space,
         model_config: Config,
     ):
+        #--------
+        #Mar/23/26
+        if "rgb" not in observation_space.spaces and "rgb_sensor_0" in observation_space.spaces:
+            observation_space.spaces["rgb"] = observation_space.spaces["rgb_sensor_0"]
+        if "depth" not in observation_space.spaces and "depth_sensor_0" in observation_space.spaces:
+            observation_space.spaces["depth"] = observation_space.spaces["depth_sensor_0"]
+        #Mar/23/26
+        #--------
+
         super().__init__(
             ETP(
                 observation_space=observation_space,
@@ -79,7 +88,7 @@ class Critic(nn.Module):
 class ETP(Net):
     def __init__(
         self, observation_space: Space, model_config: Config, num_actions,
-        spatial_output=False,
+        spatial_output=True,
     ):
         super().__init__()
 
@@ -174,97 +183,173 @@ class ETP(Net):
 
         elif mode == 'waypoint':
             # batch_size = observations['instruction'].size(0)
-            batch_size = observations['rgb'].shape[0]
-            ''' encoding rgb/depth at all directions ----------------------------- '''
+            # batch_size = observations['rgb'].shape[0]
+            # ''' encoding rgb/depth at all directions ----------------------------- '''
+            # NUM_ANGLES = 120    # 120 angles 3 degrees each
+            # NUM_IMGS = 12
+            # NUM_CLASSES = 12    # 12 distances at each sector
+            # depth_batch = torch.zeros_like(observations['depth']).repeat(NUM_IMGS, 1, 1, 1)
+            # rgb_batch = torch.zeros_like(observations['rgb']).repeat(NUM_IMGS, 1, 1, 1)
+
+            # # reverse the order of input images to clockwise
+            # a_count = 0
+            # for i, (k, v) in enumerate(observations.items()):
+            #     if 'depth' in k:  # You might need to double check the keys order
+            #         for bi in range(v.size(0)):
+            #             ra_count = (NUM_IMGS - a_count) % NUM_IMGS
+            #             depth_batch[ra_count + bi*NUM_IMGS] = v[bi]
+            #             rgb_batch[ra_count + bi*NUM_IMGS] = observations[k.replace('depth','rgb')][bi]
+            #         a_count += 1
+            # obs_view12 = {}
+            # obs_view12['depth'] = depth_batch
+            # obs_view12['rgb'] = rgb_batch
+            # depth_embedding = self.depth_encoder(obs_view12)  # torch.Size([bs, 128, 4, 4])
+            # rgb_embedding = self.rgb_encoder(obs_view12)      # torch.Size([bs, 2048, 7, 7])
+
+            # ''' waypoint prediction ----------------------------- '''
+            # waypoint_heatmap_logits = waypoint_predictor(
+            #    rgb_embedding, depth_embedding)
+            
+            # ==========================================================
+            # Mar/23/26
+            B = observations["rgb_sensor_0"].shape[0]
+            device = observations["rgb_sensor_0"].device
+            batch_size = B
             NUM_ANGLES = 120    # 120 angles 3 degrees each
             NUM_IMGS = 12
             NUM_CLASSES = 12    # 12 distances at each sector
-            depth_batch = torch.zeros_like(observations['depth']).repeat(NUM_IMGS, 1, 1, 1)
-            rgb_batch = torch.zeros_like(observations['rgb']).repeat(NUM_IMGS, 1, 1, 1)
 
-            # reverse the order of input images to clockwise
-            a_count = 0
-            for i, (k, v) in enumerate(observations.items()):
-                if 'depth' in k:  # You might need to double check the keys order
-                    for bi in range(v.size(0)):
-                        ra_count = (NUM_IMGS - a_count) % NUM_IMGS
-                        depth_batch[ra_count + bi*NUM_IMGS] = v[bi]
-                        rgb_batch[ra_count + bi*NUM_IMGS] = observations[k.replace('depth','rgb')][bi]
-                    a_count += 1
-            obs_view12 = {}
-            obs_view12['depth'] = depth_batch
-            obs_view12['rgb'] = rgb_batch
-            depth_embedding = self.depth_encoder(obs_view12)  # torch.Size([bs, 128, 4, 4])
-            rgb_embedding = self.rgb_encoder(obs_view12)      # torch.Size([bs, 2048, 7, 7])
-
-            ''' waypoint prediction ----------------------------- '''
-            #waypoint_heatmap_logits = waypoint_predictor(
-            #    rgb_embedding, depth_embedding)
+            cw_indices = [(12 - i) % 12 for i in range(12)]
             
-            # Mar/21/26
-            # --- 220 行：源码级精确数学对齐补丁 ---
-            # 1. 获取最真实的 Batch Size (来自 HA-VLN 环境的并行数)
-            # 注意：一定要在操作 observations 之前获取！
-            B = observations["rgb"].shape[0]
-            device = observations["rgb"].device
-            num_panos = 12
+            rgb_list = [observations[f"rgb_sensor_{i}"] for i in cw_indices]
+            depth_list = [observations[f"depth_sensor_{i}"] for i in cw_indices]
+            observations["rgb"] = torch.stack(rgb_list, dim=1)
+            observations["depth"] = torch.stack(depth_list, dim=1)
 
-            # 2. 准备历史帧 (必须是 4 维: [B, H, W, C])
-            # 我们直接克隆原始的当前帧作为历史
-            if "rgb_history" not in observations:
-                observations["rgb_history"] = observations["rgb"].clone()
-            if "depth_history" not in observations:
-                observations["depth_history"] = observations["depth"].clone()
-
-            # 3. 准备当前帧 (必须是 5 维: [B, 12, H, W, C])
-            if observations["rgb"].dim() == 4:
-                observations["rgb"] = observations["rgb"].unsqueeze(1).expand(-1, num_panos, -1, -1, -1)
-                observations["depth"] = observations["depth"].unsqueeze(1).expand(-1, num_panos, -1, -1, -1)
-
-            # 4. 准备角度特征 (必须是 [B, 12, 4])
-            if "angle_features" not in observations:
-                observations["angle_features"] = torch.zeros(B, num_panos, 4, device=device)
-
-            # 5. 准备辅助参数 (必须严格匹配真实的 Batch Size: B)
-            dummy_rnn_states = torch.zeros(B, 1, 512, device=device)
-            dummy_prev_actions_dict = {
-                "action": torch.zeros(B, 1, device=device).long(),
-                "pano": torch.zeros(B, 1, device=device).long(),
-                "offset": torch.zeros(B, 1, device=device),
-                "distance": torch.zeros(B, 1, device=device).long(),
+            obs_view12 = {
+                'rgb': observations["rgb"].view(B * 12, *observations["rgb"].shape[2:]),
+                'depth': observations["depth"].view(B * 12, *observations["depth"].shape[2:])
             }
-            dummy_masks = torch.ones(B, 1, device=device).bool()
+            
+            depth_embedding = self.depth_encoder(obs_view12)
+            rgb_embedding = self.rgb_encoder(obs_view12)
 
-            # --- 终极“偷天换日”补丁 (完美绕过 PyTorch 类型检查) ---
-            # 备份它原本的 forward 方法
-            # --- 之前加的假词向量补丁 (务必保留!) ---
+            print("\n[DEBUG X光扫描] 这个骗子到底是谁，藏了什么绝招：")
+            print(f"真身类型: {type(waypoint_predictor)}")
+            print("可疑方法清单:")
+            for attr in dir(waypoint_predictor):
+                if any(k in attr.lower() for k in ['predict', 'space', 'heat', 'map', 'waypoint', 'spatial']):
+                    print(f" -> {attr}")
+            import sys; sys.exit(0)
+
+            # if "rgb_history" not in observations:
+            #     observations["rgb_history"] = observations["rgb_sensor_0"].clone()
+            # if "depth_history" not in observations:
+            #     observations["depth_history"] = observations["depth_sensor_0"].clone()
+            # if "angle_features" not in observations:
+            #     observations["angle_features"] = torch.zeros(B, 12, 4, device=device)
+
+            # dummy_rnn_states = torch.zeros(B, 4, 512, device=device)
+            # dummy_prev_actions_dict = {
+            #     "action": torch.zeros(B, 1, device=device).long(),
+            #     "pano": torch.zeros(B, 1, device=device).long(),
+            #     "offset": torch.zeros(B, 1, device=device),
+            #     "distance": torch.zeros(B, 1, device=device).long(),
+            # }
+            # dummy_masks = torch.ones(B, 1, device=device).bool()
+
             original_forward = waypoint_predictor.instruction_encoder.forward
             waypoint_predictor.instruction_encoder.forward = lambda *args, **kwargs: torch.zeros(B, 256, 128, device=device)
 
-            # --- 最新发现：作者硬编码维度的降维打击补丁 ---
-            # 备份原来的 hidden_size (可能是 256)
-            original_hidden_size = waypoint_predictor._hidden_size
-            # 强行篡改为 512，满足他离谱的除法拆分逻辑！
-            waypoint_predictor._hidden_size = 512
-
-            # 6. 调用 predictor
+            # pred_outputs = waypoint_predictor(
+            #     observations,
+            #     dummy_rnn_states,
+            #     dummy_prev_actions_dict,
+            #     dummy_masks
+            # )
             waypoint_heatmap_logits = waypoint_predictor(
-                observations,
-                dummy_rnn_states,
-                dummy_prev_actions_dict,
-                dummy_masks
+                rgb_embedding, depth_embedding
             )
 
-            # 7. 跑完立刻恢复所有原状，假装什么都没发生过
             waypoint_predictor.instruction_encoder.forward = original_forward
-            waypoint_predictor._hidden_size = original_hidden_size
-            # Mar/21/26
+
+            # Mar/23/26
+            # ==========================================================
+            
+            # # Mar/21/26
+            # # --- 220 行：源码级精确数学对齐补丁 ---
+            # # 1. 获取最真实的 Batch Size (来自 HA-VLN 环境的并行数)
+            # # 注意：一定要在操作 observations 之前获取！
+            # B = observations["rgb"].shape[0]
+            # device = observations["rgb"].device
+            # num_panos = 12
+
+            # # 2. 准备历史帧 (必须是 4 维: [B, H, W, C])
+            # # 我们直接克隆原始的当前帧作为历史
+            # if "rgb_history" not in observations:
+            #     observations["rgb_history"] = observations["rgb"].clone()
+            # if "depth_history" not in observations:
+            #     observations["depth_history"] = observations["depth"].clone()
+
+            # # 3. 准备当前帧 (必须是 5 维: [B, 12, H, W, C])
+            # if observations["rgb"].dim() == 4:
+            #     observations["rgb"] = observations["rgb"].unsqueeze(1).expand(-1, num_panos, -1, -1, -1)
+            #     observations["depth"] = observations["depth"].unsqueeze(1).expand(-1, num_panos, -1, -1, -1)
+
+            # # 4. 准备角度特征 (必须是 [B, 12, 4])
+            # if "angle_features" not in observations:
+            #     observations["angle_features"] = torch.zeros(B, num_panos, 4, device=device)
+
+            # # 5. 准备辅助参数 (必须严格匹配真实的 Batch Size: B)
+            # dummy_rnn_states = torch.zeros(B, 1, 512, device=device)
+            # dummy_prev_actions_dict = {
+            #     "action": torch.zeros(B, 1, device=device).long(),
+            #     "pano": torch.zeros(B, 1, device=device).long(),
+            #     "offset": torch.zeros(B, 1, device=device),
+            #     "distance": torch.zeros(B, 1, device=device).long(),
+            # }
+            # dummy_masks = torch.ones(B, 1, device=device).bool()
+
+            # # --- 终极“偷天换日”补丁 (完美绕过 PyTorch 类型检查) ---
+            # # 备份它原本的 forward 方法
+            # # --- 之前加的假词向量补丁 (务必保留!) ---
+            # original_forward = waypoint_predictor.instruction_encoder.forward
+            # waypoint_predictor.instruction_encoder.forward = lambda *args, **kwargs: torch.zeros(B, 256, 128, device=device)
+
+            # # --- 最新发现：作者硬编码维度的降维打击补丁 ---
+            # # 备份原来的 hidden_size (可能是 256)
+            # original_hidden_size = waypoint_predictor._hidden_size
+            # # 强行篡改为 512，满足他离谱的除法拆分逻辑！
+            # waypoint_predictor._hidden_size = 512
+
+            # # 6. 调用 predictor
+            # waypoint_heatmap_logits = waypoint_predictor(
+            #     observations,
+            #     dummy_rnn_states,
+            #     dummy_prev_actions_dict,
+            #     dummy_masks
+            # )
+
+            # # 7. 跑完立刻恢复所有原状，假装什么都没发生过
+            # waypoint_predictor.instruction_encoder.forward = original_forward
+            # waypoint_predictor._hidden_size = original_hidden_size
+            # # Mar/21/26
 
             # reverse the order of images back to counter-clockwise
+            # rgb_embed_reshape = rgb_embedding.reshape(
+            #     batch_size, NUM_IMGS, 512, 1, 1)
+            # depth_embed_reshape = depth_embedding.reshape(
+            #     batch_size, NUM_IMGS, 128, 4, 4)
+
+            # ----
+            # Mar/23/26
             rgb_embed_reshape = rgb_embedding.reshape(
-                batch_size, NUM_IMGS, 512, 1, 1)
+                batch_size, NUM_IMGS, -1, 1, 1)
             depth_embed_reshape = depth_embedding.reshape(
-                batch_size, NUM_IMGS, 128, 4, 4)
+                batch_size, NUM_IMGS, -1, 1, 1)
+            # Mar/23/26
+            # ----
+            
             rgb_feats = torch.cat((
                 rgb_embed_reshape[:,0:1,:], 
                 torch.flip(rgb_embed_reshape[:,1:,:], [1]),

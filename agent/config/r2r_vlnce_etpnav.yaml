@@ -1,0 +1,258 @@
+ENVIRONMENT:
+  MAX_EPISODE_STEPS: 5000
+
+SIMULATOR:
+  ADD_HUMAN: False
+  ACTION_SPACE_CONFIG: v0
+  AGENT_0:
+    SENSORS: [
+      RGB_SENSOR_0, DEPTH_SENSOR_0, RGB_SENSOR_1, DEPTH_SENSOR_1, RGB_SENSOR_2, DEPTH_SENSOR_2, RGB_SENSOR_3, DEPTH_SENSOR_3, RGB_SENSOR_4, DEPTH_SENSOR_4, RGB_SENSOR_5, DEPTH_SENSOR_5, RGB_SENSOR_6, DEPTH_SENSOR_6, RGB_SENSOR_7, DEPTH_SENSOR_7, RGB_SENSOR_8, DEPTH_SENSOR_8, RGB_SENSOR_9, DEPTH_SENSOR_9, RGB_SENSOR_10, DEPTH_SENSOR_10, RGB_SENSOR_11, DEPTH_SENSOR_11
+    ]
+
+  RGB_SENSOR_0:
+    UUID: "rgb_sensor_0"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 0.0000, 0.0]
+  DEPTH_SENSOR_0:
+    UUID: "depth_sensor_0"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 0.0000, 0.0]
+  RGB_SENSOR_1:
+    UUID: "rgb_sensor_1"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 0.5236, 0.0]
+  DEPTH_SENSOR_1:
+    UUID: "depth_sensor_1"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 0.5236, 0.0]
+  RGB_SENSOR_2:
+    UUID: "rgb_sensor_2"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 1.0472, 0.0]
+  DEPTH_SENSOR_2:
+    UUID: "depth_sensor_2"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 1.0472, 0.0]
+  RGB_SENSOR_3:
+    UUID: "rgb_sensor_3"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 1.5708, 0.0]
+  DEPTH_SENSOR_3:
+    UUID: "depth_sensor_3"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 1.5708, 0.0]
+  RGB_SENSOR_4:
+    UUID: "rgb_sensor_4"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 2.0944, 0.0]
+  DEPTH_SENSOR_4:
+    UUID: "depth_sensor_4"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 2.0944, 0.0]
+  RGB_SENSOR_5:
+    UUID: "rgb_sensor_5"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 2.6180, 0.0]
+  DEPTH_SENSOR_5:
+    UUID: "depth_sensor_5"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 2.6180, 0.0]
+  RGB_SENSOR_6:
+    UUID: "rgb_sensor_6"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 3.1416, 0.0]
+  DEPTH_SENSOR_6:
+    UUID: "depth_sensor_6"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 3.1416, 0.0]
+  RGB_SENSOR_7:
+    UUID: "rgb_sensor_7"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 3.6652, 0.0]
+  DEPTH_SENSOR_7:
+    UUID: "depth_sensor_7"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 3.6652, 0.0]
+  RGB_SENSOR_8:
+    UUID: "rgb_sensor_8"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 4.1888, 0.0]
+  DEPTH_SENSOR_8:
+    UUID: "depth_sensor_8"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 4.1888, 0.0]
+  RGB_SENSOR_9:
+    UUID: "rgb_sensor_9"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 4.7124, 0.0]
+  DEPTH_SENSOR_9:
+    UUID: "depth_sensor_9"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 4.7124, 0.0]
+  RGB_SENSOR_10:
+    UUID: "rgb_sensor_10"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 5.2360, 0.0]
+  DEPTH_SENSOR_10:
+    UUID: "depth_sensor_10"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 5.2360, 0.0]
+  RGB_SENSOR_11:
+    UUID: "rgb_sensor_11"
+    WIDTH: 224
+    HEIGHT: 224
+    HFOV: 90
+    TYPE: HabitatSimRGBSensor
+    ORIENTATION: [0.0, 5.7596, 0.0]
+  DEPTH_SENSOR_11:
+    UUID: "depth_sensor_11"
+    WIDTH: 256
+    HEIGHT: 256
+    HFOV: 90
+    TYPE: HabitatSimDepthSensor
+    MIN_DEPTH: 0.0
+    MAX_DEPTH: 10.0
+    NORMALIZE_DEPTH: True
+    ORIENTATION: [0.0, 5.7596, 0.0]
+  TYPE:
+    Sim-v0
+    
+TASK:
+  TYPE: VLN-v0
+    #  POSSIBLE_ACTIONS: [STOP, MOVE_FORWARD, TURN_LEFT, TURN_RIGHT, HIGHTOLOW]
+  POSSIBLE_ACTIONS: [STOP, MOVE_FORWARD, TURN_LEFT, TURN_RIGHT]
+  SUCCESS_DISTANCE: 3.0
+  SENSORS: [
+    INSTRUCTION_SENSOR,
+    # SHORTEST_PATH_SENSOR,
+    # VLN_ORACLE_PROGRESS_SENSOR
+  ]
+  INSTRUCTION_SENSOR_UUID: instruction
+  MEASUREMENTS: [
+    # DISTANCE_TO_GOAL,
+    # SUCCESS,
+    # SPL,
+    # NDTW,
+    # PATH_LENGTH,
+    # ORACLE_SUCCESS,
+    # STEPS_TAKEN
+  ]
+  SUCCESS:
+    SUCCESS_DISTANCE: 3.0
+  SPL:
+    SUCCESS_DISTANCE: 3.0
+  NDTW:
+    SUCCESS_DISTANCE: 3.0
+    GT_PATH: data/datasets/R2R_VLNCE_v1-2_preprocessed/{split}/{split}_gt.json.gz
+  SDTW:
+    SUCCESS_DISTANCE: 3.0
+    GT_PATH: data/datasets/R2R_VLNCE_v1-2_preprocessed/{split}/{split}_gt.json.gz
+  ORACLE_SUCCESS:
+    SUCCESS_DISTANCE: 3.0
+    
+DATASET:
+  TYPE: VLN-CE-v1
+  SPLIT: train
+    #  DATA_PATH: data/datasets/R2R_VLNCE_v1-2_preprocessed_BERTidx/{split}/{split}_bertidx.json.gz
+    #  SCENES_DIR: data/scene_datasets/
+  DATA_PATH: /home/jojo/gitlib/HA-VLN/Data/HA-R2R/{split}/{split}.json.gz
+  SCENES_DIR: /home/jojo/gitlib/HA-VLN/Data/scene_datasets/

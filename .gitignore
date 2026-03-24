@@ -9,6 +9,7 @@ download_mp.py
 *_backup*
 agent/VLN-CE/bert_config/
 agent/VLN-CE/pretrained/
+temp.*
 
 # IDE
 .idea/

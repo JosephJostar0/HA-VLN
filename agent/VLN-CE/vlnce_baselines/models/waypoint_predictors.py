@@ -463,15 +463,38 @@ class WaypointPredictionNet(Net):
 
         # split K, V for dot product attention
         rgb_kv_in = self.rgb_kv_spatial(flat_rgb_embedding)  # [B*12, 512, 16]
-        rgb_k_spatial, rgb_v_spatial = torch.split(  # k: [B*12, 256, 16]
-            rgb_kv_in, self._hidden_size // 2, dim=1  # v: [B*12, 256, 16]
+        #rgb_k_spatial, rgb_v_spatial = torch.split(  # k: [B*12, 256, 16]
+        #    rgb_kv_in, self._hidden_size // 2, dim=1  # v: [B*12, 256, 16]
+        #)
+
+        #----------
+        # Mar/23/26
+        q_dim = text_q_spatial.size(-1)
+        rgb_k_spatial, rgb_v_spatial = torch.split(
+            rgb_kv_in, [q_dim, rgb_kv_in.size(1) - q_dim], dim=1
         )
+        # Mar/23/26
+        #----------
+
         depth_kv_in = self.depth_kv_spatial(
             flat_depth_embedding
         )  # [B*12, 384, 16]
-        depth_k_spatial, depth_v_spatial = torch.split(  # k: [B*12, 256, 16]
-            depth_kv_in, self._hidden_size // 2, dim=1  # v: [B*12, 128, 16]
+        #depth_k_spatial, depth_v_spatial = torch.split(  # k: [B*12, 256, 16]
+        #    depth_kv_in, self._hidden_size // 2, dim=1  # v: [B*12, 128, 16]
+        #)
+
+        #----------
+        # Mar/23/26
+        depth_k_spatial, depth_v_spatial = torch.split(
+            depth_kv_in, [q_dim, depth_kv_in.size(1) - q_dim], dim=1
         )
+        # Mar/23/26
+        #----------
+
+        # Mar/23/26
+        # print(f"\n[DEBUG 探照灯] Q的形状: {text_q_spatial.shape} | K的形状: {rgb_k_spatial.shape} | 当前隐藏层大小: {self._hidden_size}")
+        # import sys; sys.exit(0)
+        # Mar/23/26
 
         # perform scaled dot product attention
         spatial_attended_rgb = self.rgb_spatial_attn(  # [B*12, 256]

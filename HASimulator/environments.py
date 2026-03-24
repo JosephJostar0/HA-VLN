@@ -42,7 +42,7 @@ class HAVLNCE():
         self.signal_queue = queue.Queue(maxsize=120)
 
         # Start the child thread to send signals
-        self._signal_thread = threading.Thread(target=self._signal_sender)
+        self._signal_thread = threading.Thread(target=self._signal_sender) # flag0: 每隔0.1秒向signal_queue塞入一个refresh_human_model的信号，信号总数+1
         self._signal_thread.daemon = True
         self._signal_thread.start()
 
@@ -108,7 +108,7 @@ class HAVLNCE():
             # Wait for 0.5 seconds before sending the next signal
             time.sleep(0.1)
 
-    def _handle_signals(self):
+    def _handle_signals(self): # flag0
         """Main thread method to handle signals from the child thread."""
         try:
             signals_processed = 0
@@ -214,7 +214,7 @@ class HAVLNCE():
     
     def __init_manager__(self):
 
-        self.obj_templates_mgr = self._sim.get_object_template_manager()
+        self.obj_templates_mgr = self._sim.get_object_template_manager() # flag0: 120个3D人体模型网格文件
         
         idx2category = {}
         self.category2idx = {}
