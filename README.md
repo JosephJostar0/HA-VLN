@@ -205,7 +205,7 @@ You can navigate through a scene with keyboard:
 | **D** | Turn right   |
 
 ```
-cd scritps
+cd scripts
 python demo.py --scan 1LXtFkjw3qL
 ```
 You may change the scan id to that of the scene you want to explore.
