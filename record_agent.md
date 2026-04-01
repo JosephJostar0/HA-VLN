@@ -179,3 +179,72 @@ if 'distance_to_human' in keys or 'collisions_detail' in keys:
     if 'collisions_detail' in keys:
         stats_info[ep_id]['collisions_detail'] = stats_episodes[ep_id].pop('collisions_detail')
 ```
+
+## 5. Visualization and Debugging Level
+
+In the HA-VLN dynamic environment, visualization is a critical step for verifying the Agent's obstacle avoidance strategies and human awareness capabilities. By collecting observation images during the evaluation phase, appending instruction text, and optionally integrating the output of object detection models, a complete video record of the Agent's navigation process can be synthesized.
+
+### 5.1 Dependency Modules
+The visualization pipeline primarily relies on the following utility functions:
+* `observations_to_image`: Concatenates the Agent's multi-modal observations (e.g., RGB, depth map, top-down map) into a single image frame.
+* `append_text_to_image`: Overlays the current natural language navigation instruction at the top of the image frame.
+* `generate_video`: Encodes the collected sequence of image frames and saves it as a local video file (e.g., MP4).
+
+### 5.2 Observation and Object Detection Fusion (Optional)
+If `HUMAN_COUNTING` is enabled in the configuration file, the system will call the GroundingDINO detector to identify human models within the field of view. The rendered image with bounding boxes must replace the original RGB observation before frame concatenation.
+
+### 5.3 Evaluation Loop Integration Code
+Within the Agent's evaluation stepping loop (typically located in the `_eval_checkpoint` method), implement the following logic to collect image frames and generate videos:
+
+```python
+from copy import deepcopy
+from habitat_extensions.utils import observations_to_image, generate_video
+from habitat.utils.visualizations.utils import append_text_to_image
+
+# Initialize a list to store video frames
+# envs.num_envs represents the number of parallel environments
+rgb_frames = [[] for _ in range(envs.num_envs)]
+
+# Assuming this is inside the evaluation stepping loop: outputs = envs.step(actions)
+# observations, _, dones, infos = [list(x) for x in zip(*outputs)]
+
+for i in range(envs.num_envs):
+    # Check if the configuration allows video generation
+    if len(config.VIDEO_OPTION) > 0:
+        
+        # 1. Image processing and observation replacement
+        if config.TASK_CONFIG.SIMULATOR.HUMAN_COUNTING:
+            # Deep copy to avoid modifying underlying environment data
+            observations_ = deepcopy(observations)
+            for k in range(len(observations)):
+                # detected_img is the image with bounding boxes returned by the prior detector() call
+                observations_[k]['rgb'] = detected_img[k]
+            frame = observations_to_image(observations_[i], infos[i])
+        else:
+            # Default concatenation
+            frame = observations_to_image(observations[i], infos[i])
+        
+        # 2. Append text instructions to the current frame
+        frame = append_text_to_image(
+            frame, current_episodes[i].instruction.instruction_text
+        )
+        rgb_frames[i].append(frame)
+
+    # 3. Trigger video generation when the Episode ends
+    if dones[i]:
+        ep_id = current_episodes[i].episode_id
+        
+        if len(config.VIDEO_OPTION) > 0:
+            generate_video(
+                video_option=config.VIDEO_OPTION,
+                video_dir=config.VIDEO_DIR,
+                images=rgb_frames[i],
+                episode_id=ep_id,
+                checkpoint_idx=checkpoint_index,
+                # Record core metrics; can be replaced with TCR / strict_success
+                metrics={"spl": stats_episodes[ep_id]["spl"]}, 
+                tb_writer=writer,
+            )
+            # Clear the generated frames list to prepare for the next Episode
+            rgb_frames[i] = []
+```

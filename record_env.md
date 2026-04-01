@@ -2,8 +2,6 @@
 
 The original repositories rely on older dependencies (Python 3.7, CUDA 11.1). If you are on a modern Linux distribution (like Ubuntu 22.04 or 24.04), strictly following the steps below will prevent legacy compilation errors, dependency hell, and C++ compiler mismatches.
 
-**Note:** We highly recommend using `mamba` instead of `conda` for resolving these older environments, as it is significantly faster.
-
 ## 1. Install System Dependencies
 
 First, install the required graphics and encryption libraries on your host machine. We use `libgl1` (replacing the deprecated `libgl1-mesa-glx`) and `libcrypt-dev` (required for compiling `lmdb` later).
@@ -22,7 +20,7 @@ git clone https://github.com/F1y1113/HA-VLN.git
 cd HA-VLN
 
 # Create environment with locked legacy compilers
-mamba create -n havlnce python=3.7 gcc_linux-64=9 gxx_linux-64=9 cudatoolkit=11.1 -c conda-forge -y
+conda create -n havlnce python=3.7 gcc_linux-64=9 gxx_linux-64=9 cudatoolkit=11.1 -c conda-forge -y
 conda activate havlnce
 ```
 
@@ -32,7 +30,7 @@ To compile custom CUDA extensions later, the basic cudatoolkit is not enough. We
 
 ```bash
 # Install full CUDA toolkit (contains nvcc)
-mamba install -c conda-forge cudatoolkit-dev=11.1.1 -y
+conda install -c conda-forge cudatoolkit-dev=11.1.1 -y
 
 # Export CUDA_HOME to point inside the conda environment
 export CUDA_HOME=$CONDA_PREFIX
@@ -47,7 +45,7 @@ We use the pre-compiled binary for habitat-sim to save time. For habitat-lab, we
 
 ```bash
 # 1. Install Habitat-Sim (Headless)
-mamba install -c aihabitat -c conda-forge habitat-sim=0.1.7 headless -y
+conda install -c aihabitat -c conda-forge habitat-sim=0.1.7 headless -y
 
 # 2. Clone and Install Habitat-Lab
 git clone --branch v0.1.7 https://github.com/facebookresearch/habitat-lab.git

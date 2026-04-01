@@ -1,0 +1,59 @@
+{
+  "challenge_name": "HA-VLN Challenge",
+  "version": "1.0",
+  "description": "Automatic scoring system for HA-VLN challenge submissions",
+  
+  "paths": {
+    "test_path": "Data/HA-R2R/test.json.gz",
+    "test_gt_path": "Data/HA-R2R/test_gt.json.gz",
+    "collision_stats_path": "Data/HA-R2R-tools/collision_num_{split}.json"
+  },
+  
+  "split": "test",
+  
+  "parameters": {
+    "success_distance": 3.0,
+    "forward_step_size": 0.25,
+    "turn_angle": 15,
+    "max_steps": 500,
+    "dtw_method": "fastdtw"
+  },
+  
+  "metrics": {
+    "public": [
+      "sr_human",
+      "spl",
+      "ndtw",
+      "sdtw",
+      "collisions",
+      "tcr"
+    ],
+    "detailed": [
+      "success",
+      "spl",
+      "path_length",
+      "oracle_success",
+      "oracle_spl",
+      "ndtw",
+      "sdtw",
+      "steps",
+      "collisions",
+      "tcr",
+      "cr",
+      "sr_human",
+      "distance_to_goal"
+    ]
+  },
+  
+  "submission": {
+    "min_episodes": 3408,
+    "max_submission_size_mb": 50,
+    "allowed_extensions": [".json", ".txt"]
+  },
+  
+  "leaderboard": {
+    "primary_metric": "sr_human",
+    "secondary_metrics": ["spl", "ndtw"],
+    "update_frequency": "daily"
+  }
+}
