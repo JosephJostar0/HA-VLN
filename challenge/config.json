@@ -1,59 +1,63 @@
 {
-  "challenge_name": "HA-VLN Challenge",
-  "version": "1.0",
-  "description": "Automatic scoring system for HA-VLN challenge submissions",
-  
-  "paths": {
-    "test_path": "Data/HA-R2R/test.json.gz",
-    "test_gt_path": "Data/HA-R2R/test_gt.json.gz",
-    "collision_stats_path": "Data/HA-R2R-tools/collision_num_{split}.json"
+  "evaluator": {
+    "name": "HA-VLN Challenge Evaluator",
+    "version": "1.0.0",
+    "description": "Configuration for HA-VLN Challenge evaluation pipeline"
   },
   
-  "split": "test",
+  "paths": {
+    "test_gt": "Data/HA-R2R/test/test_gt.json.gz",
+    "test_non_gt": "Data/HA-R2R/test/test.json.gz",
+    "baseline_collisions": "Data/HA-R2R-tools/collision_num_test.json",
+    "scene_datasets": "Data/scene_datasets/mp3d",
+    "human_glb_path": "Data/HAPS2_0",
+    "human_info_path": "Data/Multi-Human-Annotations/human_motion.json",
+    "recompute_navmesh_path": "Data/recompute_navmesh",
+    "output_dir": "evaluation_results"
+  },
   
-  "parameters": {
+  "simulator": {
+    "add_human": true,
+    "human_counting": false,
+    "allow_sliding": true,
+    "max_steps_per_episode": 500,
     "success_distance": 3.0,
-    "forward_step_size": 0.25,
-    "turn_angle": 15,
-    "max_steps": 500,
-    "dtw_method": "fastdtw"
+    "collision_threshold": 1.0
   },
   
   "metrics": {
-    "public": [
-      "sr_human",
-      "spl",
-      "ndtw",
-      "sdtw",
-      "collisions",
-      "tcr"
-    ],
-    "detailed": [
-      "success",
-      "spl",
-      "path_length",
-      "oracle_success",
-      "oracle_spl",
-      "ndtw",
-      "sdtw",
-      "steps",
-      "collisions",
-      "tcr",
-      "cr",
-      "sr_human",
-      "distance_to_goal"
-    ]
+    "compute_ne": true,
+    "compute_sr": true,
+    "compute_tcr": true,
+    "compute_cr": true,
+    "beta": 0.5,
+    "success_distance": 3.0
   },
   
-  "submission": {
-    "min_episodes": 3408,
-    "max_submission_size_mb": 50,
-    "allowed_extensions": [".json", ".txt"]
+  "evaluation": {
+    "batch_size": 1,
+    "num_workers": 4,
+    "device": "cuda",
+    "verbose": true,
+    "save_per_episode_results": true,
+    "generate_leaderboard": true,
+    "generate_detailed_report": true
   },
   
-  "leaderboard": {
-    "primary_metric": "sr_human",
-    "secondary_metrics": ["spl", "ndtw"],
-    "update_frequency": "daily"
+  "validation": {
+    "check_episode_coverage": true,
+    "check_action_codes": true,
+    "check_action_length": true,
+    "max_actions": 500,
+    "min_actions": 1,
+    "valid_actions": [0, 1, 2, 3]
+  },
+  
+  "output": {
+    "leaderboard_format": "json",
+    "per_episode_format": "json",
+    "summary_format": "markdown",
+    "include_trajectory_visualization": false,
+    "save_raw_metrics": true
   }
 }

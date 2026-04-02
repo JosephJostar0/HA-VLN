@@ -2,18 +2,18 @@
 
 ## Overview
 
-选手需要提交**动作序列**文件。主办方将私有重放这些动作，计算所有评分指标。
+Participants must submit **action sequence** files. The organizers will privately replay these actions in the HA-VLN simulator to compute all evaluation metrics.
 
 ## Submission Schema
 
-### 文件格式
-- **格式**: JSON
-- **单位**: 
-  - position: 米 (m)
-  - heading: 弧度 (rad)
-  - 动作代码: 整数
+### File Format
+- **Format**: JSON
+- **Units**:
+  - position: meters (m)
+  - heading: radians (rad)
+  - action codes: integers
 
-### JSON 结构
+### JSON Structure
 
 ```json
 {
@@ -45,76 +45,76 @@
 }
 ```
 
-### 字段说明
+### Field Descriptions
 
-#### 必填字段
+#### Required Fields
 
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `episode_id` | string | 必填 | episode 唯一标识，与 test.json.gz 中的 episode_id 匹配 |
-| `trajectory_id` | string | 必填 | trajectory 唯一标识，与 test.json.gz 中的 trajectory_id 匹配 |
-| `scene_id` | string | 必填 | 场景 ID，与 test.json.gz 中的 scene_id 匹配 |
-| `actions` | array[int] | 必填 | 动作序列，长度 > 0 且 ≤ 500 |
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `episode_id` | string | Required | Unique episode identifier, must match `episode_id` in `test.json.gz` |
+| `trajectory_id` | string | Required | Unique trajectory identifier, must match `trajectory_id` in `test.json.gz` |
+| `scene_id` | string | Required | Scene ID, must match `scene_id` in `test.json.gz` |
+| `actions` | array[int] | Required | Action sequence, length > 0 and ≤ 500 |
 
-#### 动作代码 (Action Codes)
+#### Action Codes
 
-| 代码 | 动作名 | 描述 |
-|------|--------|------|
-| 0 | STOP | 停止导航，结束本 episode |
-| 1 | MOVE_FORWARD | 前进 0.25m |
-| 2 | TURN_LEFT | 左转 15° |
-| 3 | TURN_RIGHT | 右转 15° |
+| Code | Action Name | Description |
+|------|-------------|-------------|
+| 0 | STOP | Stop navigation, end episode |
+| 1 | MOVE_FORWARD | Move forward 0.25m |
+| 2 | TURN_LEFT | Turn left 15° |
+| 3 | TURN_RIGHT | Turn right 15° |
 
-#### 可选字段
+#### Optional Fields
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `trajectory` | array[dict] | 每步的观测状态（仅用于审计和可视化，不参与打分） |
-| `trajectory[i].position` | array[float] | 第 i 步后的 xyz 坐标 |
-| `trajectory[i].heading` | float | 第 i 步后的朝向（弧度，范围 [-π, π]） |
-| `trajectory[i].stop` | bool | 该步后是否调用了 STOP 动作 |
+| Field | Type | Description |
+|-------|------|-------------|
+| `trajectory` | array[dict] | Observation states for each step (for auditing and visualization only, not used for scoring) |
+| `trajectory[i].position` | array[float] | XYZ coordinates after step i |
+| `trajectory[i].heading` | float | Heading after step i (radians, range [-π, π]) |
+| `trajectory[i].stop` | bool | Whether STOP action was called after this step |
 
 #### Metadata
 
-| 字段 | 类型 | 建议 | 说明 |
-|------|------|------|------|
-| `agent_name` | string | 是 | 你的方法/模型名称 |
-| `timestamp` | string | 是 | 生成时间（ISO 8601 格式） |
-| `split` | string | 是 | 总是 "test" |
+| Field | Type | Recommended | Description |
+|-------|------|-------------|-------------|
+| `agent_name` | string | Yes | Your method/model name |
+| `timestamp` | string | Yes | Generation time (ISO 8601 format) |
+| `split` | string | Yes | Always "test" |
 
 ---
 
-## 验证规则 (Validator Rules)
+## Validation Rules
 
-选手提交将经过以下检查：
+Submissions will undergo the following checks:
 
-### 1. 结构验证
-- ✓ 文件是有效的 JSON
-- ✓ 根元素包含 `episodes` 字段且类型为 array
-- ✓ 每个 episode 包含必填字段
+### 1. Structural Validation
+- ✓ File is valid JSON
+- ✓ Root element contains `episodes` field of type array
+- ✓ Each episode contains all required fields
 
-### 2. 字段验证
-- ✓ `episode_id`, `trajectory_id`, `scene_id` 都是字符串
-- ✓ `actions` 是整数数组，每个动作 ∈ {0, 1, 2, 3}
-- ✓ 轨迹长度 1 ≤ len(actions) ≤ 500
+### 2. Field Validation
+- ✓ `episode_id`, `trajectory_id`, `scene_id` are all strings
+- ✓ `actions` is an integer array, each action ∈ {0, 1, 2, 3}
+- ✓ Trajectory length 1 ≤ len(actions) ≤ 500
 
-### 3. 数据完整性
-- ✓ episode_id 来自 test 集（不能重复）
-- ✓ 每个 episode_id 仅出现一次（无重复提交）
-- ✓ test 集所有 episode 都被覆盖
+### 3. Data Integrity
+- ✓ episode_id comes from test set (no duplicates)
+- ✓ Each episode_id appears only once (no duplicate submissions)
+- ✓ All episodes from test set are covered
 
-### 4. 可选字段验证
-- 若提供 `trajectory`：
-  - 长度必须 ≥ 1（至少初始状态）
-  - 每个点的 position 是长度为 3 的浮点数组
-  - heading 范围 [-π, π]
-  - stop 是布尔值
+### 4. Optional Field Validation
+- If `trajectory` is provided:
+  - Length must be ≥ 1 (at least initial state)
+  - Each point's position is a float array of length 3
+  - heading range [-π, π]
+  - stop is boolean
 
 ---
 
-## 示例
+## Examples
 
-### 最小化示例（仅动作）
+### Minimal Example (Actions Only)
 
 ```json
 {
@@ -139,7 +139,7 @@
 }
 ```
 
-### 完整示例（包含轨迹）
+### Complete Example (With Trajectory)
 
 ```json
 {
@@ -178,57 +178,162 @@
 
 ---
 
-## 评测流程
+## How to Generate Submission from Your Agent
 
-1. **验证（Validator）**: 检查文件格式和完整性
-2. **重放（Replayer）**: 在私有 simulator 中重放动作序列
-3. **计算（Metric Engine）**: 计算 Success、SPL、nDTW、sDTW、TCR、SR_human 等指标
-4. **聚合（Aggregator）**: 计算全集均值和统计
-5. **报告（Reporter）**: 生成 leaderboard 结果和 per-episode 详情
+### 1. Collect Action Sequences
+During inference on the test split, record the action sequence for each episode. Here's a template for integrating with your agent:
 
-结果将在以下方面返回：
+```python
+import json
+import gzip
+from typing import List, Dict, Any
 
-- **公开指标** (Leaderboard): SR_human, SPL, nDTW, sDTW
-- **诊断统计** (Per-episode JSON): 每个 episode 的完整指标、中间过程值
-- **排行榜排序**: 
-  1. 主排序：SR_human（成功率，人类感知安全）
-  2. 次排序：SPL（路径效率）
-  3. 三排序：nDTW（轨迹相似度）
+class SubmissionGenerator:
+    def __init__(self):
+        self.episodes = []
+        
+    def add_episode(self, episode_id: str, trajectory_id: str, 
+                   scene_id: str, actions: List[int],
+                   trajectory: List[Dict] = None):
+        """Add an episode to the submission"""
+        episode = {
+            "episode_id": str(episode_id),
+            "trajectory_id": str(trajectory_id),
+            "scene_id": scene_id,
+            "actions": actions
+        }
+        if trajectory is not None:
+            episode["trajectory"] = trajectory
+        self.episodes.append(episode)
+    
+    def save(self, output_path: str, agent_name: str):
+        """Save submission to JSON file"""
+        submission = {
+            "episodes": self.episodes,
+            "metadata": {
+                "agent_name": agent_name,
+                "timestamp": datetime.now().isoformat(),
+                "split": "test"
+            }
+        }
+        
+        with open(output_path, 'w') as f:
+            json.dump(submission, f, indent=2)
+```
+
+### 2. Integration with HA-VLN Agent
+If you're using the HA-VLN framework, modify your evaluation loop to collect actions:
+
+```python
+from challenge.tools.submission_generator import SubmissionGenerator
+
+# Initialize generator
+submission_gen = SubmissionGenerator()
+
+# In your evaluation loop
+for episode in test_episodes:
+    actions = []
+    trajectory = []  # Optional: collect positions and headings
+    
+    env.reset()
+    while not env.episode_over:
+        # Get action from your agent
+        action = agent.act(observation)
+        actions.append(action)
+        
+        # Optional: record trajectory
+        state = env.get_agent_state()
+        trajectory.append({
+            "position": state.position.tolist(),
+            "heading": state.rotation,
+            "stop": (action == 0)
+        })
+        
+        # Step environment
+        observation = env.step(action)
+    
+    # Add to submission
+    submission_gen.add_episode(
+        episode_id=episode.episode_id,
+        trajectory_id=episode.trajectory_id,
+        scene_id=episode.scene_id,
+        actions=actions,
+        trajectory=trajectory  # Optional
+    )
+
+# Save submission
+submission_gen.save("my_submission.json", "MyAgent")
+```
+
+### 3. Using the Provided Template
+A complete template script is available at `challenge/tools/generate_submission.py`. You can adapt it to your agent's interface.
 
 ---
 
-## 常见问题 (FAQ)
+## Evaluation Process
 
-**Q: 可否提交不同长度的轨迹？**  
-A: 可以。每个 episode 的动作序列长度可以不同，但总长度不能超过 500 步。最后一个动作通常应该是 STOP。
+1. **Validation**: Check file format and completeness
+2. **Replay**: Replay action sequences in private HA-VLN simulator with human rendering enabled
+3. **Calculation**: Compute NE, SR, TCR, CR metrics using ground truth data
+4. **Aggregation**: Compute dataset-wide averages and statistics
+5. **Reporting**: Generate leaderboard results and per-episode details
 
-**Q: 如果忘记在末尾加 STOP 怎么办？**  
-A: Evaluator 会自动检测 episode 是否在 500 步后终止。如果未收到 STOP 信号，将视作 episode_over=False，可能得分偏低。
+Results will be returned in the following forms:
 
-**Q: trajectory 字段是可选的吗？**  
-A: 是。但提供 trajectory 有助于审计和可视化。如果提供，Evaluator 会校验其与 actions 的一致性。
-
-**Q: 动作代码顺序是否固定？**  
-A: 是。请严格按上表使用代码。其他值会触发验证错误。
-
-**Q: 轨迹坐标精度有要求吗？**  
-A: 建议保留小数点后 3 位。Evaluator 对浮点数精度不敏感，但过度四舍五入可能影响可视化。
-
----
-
-## 提交清单
-
-- [ ] 文件是有效的 JSON
-- [ ] 所有必填字段已赋值
-- [ ] episode_id 和 scene_id 与 test.json.gz 匹配
-- [ ] 每个 actions 元素 ∈ {0, 1, 2, 3}
-- [ ] actions 长度 ≤ 500
-- [ ] 没有重复的 episode_id
-- [ ] metadata 中 split 字段为 "test"
-- [ ] （可选）若提供 trajectory，其字段格式与规范一致
+- **Public Leaderboard**: SR, TCR, NE, CR (averaged across test set)
+- **Diagnostic Statistics**: Per-episode JSON with complete metrics
+- **Leaderboard Ranking**:
+  1. Primary: SR (Success Rate)
+  2. Secondary: TCR (lower is better)
+  3. Tertiary: NE (lower is better)
 
 ---
 
-**提交截止**: 见挑战赛公告  
-**评测结果发布**: 用时通常 < 2 小时  
-**申诉期限**: 结果发布后 7 天内可申诉
+## Frequently Asked Questions (FAQ)
+
+**Q: Can I submit trajectories of different lengths?**  
+A: Yes. Each episode's action sequence can have different length, but total length cannot exceed 500 steps. The last action should typically be STOP.
+
+**Q: What if I forget to add STOP at the end?**  
+A: The evaluator will automatically detect if an episode ends after 500 steps. If no STOP is received, it will be treated as episode_over=False, which may result in lower scores.
+
+**Q: Is the trajectory field optional?**  
+A: Yes. Providing trajectory helps with auditing and visualization. If provided, the evaluator will check its consistency with actions.
+
+**Q: Are action codes fixed?**  
+A: Yes. Please strictly use the codes in the table above. Other values will trigger validation errors.
+
+**Q: What precision is required for trajectory coordinates?**  
+A: We recommend 3 decimal places. The evaluator is not sensitive to floating-point precision, but excessive rounding may affect visualization.
+
+**Q: How do I get the test episode IDs?**  
+A: Load `Data/HA-R2R/test/test.json.gz` to see all test episodes with their IDs, scene IDs, and instructions.
+
+**Q: Can I submit partial results?**  
+A: No. You must submit predictions for all episodes in the test set (3408 episodes).
+
+---
+
+## Submission Checklist
+
+- [ ] File is valid JSON
+- [ ] All required fields are assigned
+- [ ] episode_id and scene_id match test.json.gz
+- [ ] Each actions element ∈ {0, 1, 2, 3}
+- [ ] actions length ≤ 500
+- [ ] No duplicate episode_id
+- [ ] split field in metadata is "test"
+- [ ] (Optional) If trajectory is provided, its fields match the specification
+
+---
+
+**Submission Deadline**: See challenge announcement  
+**Evaluation Results**: Typically available within 2 hours  
+**Appeal Period**: 7 days after results are published
+
+## Related Documentation
+
+- [Environment Setup](record_env.md) - How to set up the HA-VLN environment
+- [Simulator API](record_api.md) - HA-VLN simulator interfaces
+- [Agent Integration](record_agent.md) - How to integrate your agent with HA-VLN
+- [Challenge Details](record_challenge.md) - Data splits and challenge organization

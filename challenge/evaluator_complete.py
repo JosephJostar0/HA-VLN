@@ -500,4 +500,4 @@ class ResultAggregator:
         ne_avg = sum(r.navigation_error for r in results) / total
         sr_avg = sum(r.sr for r in results) / total
         tcr_avg = sum(r.tcr for r in results) / total
-        cr_avg = sum(r.cr for r in results)
+        cr_avg = sum(r.cr for r in

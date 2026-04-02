@@ -10,6 +10,8 @@ download_mp.py
 temp.*
 agent/VLN-CE/pretrained/
 agent/VLN-CE/bert_config/
+useless-challenge/
+*.pdf
 
 # IDE
 .idea/

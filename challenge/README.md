@@ -1,345 +1,138 @@
-# HA-VLN Challenge System
+# HA-VLN Challenge
 
-Complete automatic scoring and evaluation system for the HA-VLN challenge.
+Welcome to the HA-VLN (Human-Aware Vision-and-Language Navigation) Challenge! This challenge evaluates agents' ability to navigate in dynamic human-populated environments while following natural language instructions.
 
-## 📋 Overview
+## Quick Links
 
-This system provides:
+- [Submission Format](SUBMISSION_FORMAT.md) - Detailed specification for submission files
+- [Environment Setup](../record_env.md) - How to set up the HA-VLN environment
+- [Simulator API](../record_api.md) - HA-VLN simulator interfaces
+- [Agent Integration](../record_agent.md) - How to integrate your agent with HA-VLN
+- [Challenge Details](../record_challenge.md) - Data splits and challenge organization
 
-1. **Submission Format Specification** - Exactly how to format submissions
-2. **Automatic Evaluator** - Validates, replays, and scores submissions
-3. **Documentation** - Complete guides for participants
-4. **Starter Kit** - Templates and examples to get started
-5. **Configuration** - Centralized parameter management
+## Challenge Overview
 
-## 📁 Directory Structure
+### Task Description
+The HA-VLN challenge requires agents to navigate from a starting position to a goal location in indoor environments populated with dynamic human activities. Agents must follow natural language instructions that describe both the path and human activities (e.g., "pass by a person talking on the phone").
 
-```
-challenge/
-├── README.md                      # ← You are here
-├── SUBMISSION_FORMAT.md           # Required submission schema
-├── EVALUATION_GUIDE.md            # How evaluation works, interpretation
-├── STARTER_KIT.md                 # Getting started guide
-│
-├── evaluator.py                   # Main evaluation script (5 stages)
-├── template_solution.py           # Solution template for development
-├── config.json                    # Evaluator configuration
-│
-├── examples/                      # Example submissions
-│   ├── random_baseline.json
-│   ├── forward_walk.json
-│   └── il_baseline.json
-│
-└── [eval_results/]               # Created after running evaluator
-    ├── leaderboard.json          # Public metrics
-    ├── per_episode.json          # Per-episode scores
-    ├── aggregated.json           # Full statistics
-    └── summary.txt               # Human-readable report
-```
+### Key Features
+- **Dynamic Human Activities**: Real-time rendering of human motions and interactions
+- **Complex Instructions**: Natural language descriptions incorporating human behaviors
+- **Human-Aware Evaluation**: Metrics that account for collision avoidance and social navigation
 
-## 🚀 Quick Start
+## Getting Started
 
-### For Participants
+### 1. Set Up Environment
+Follow the [Environment Setup](../record_env.md) guide to install all dependencies.
 
-1. **Understand the format**:
-   ```bash
-   cat SUBMISSION_FORMAT.md
-   ```
-
-2. **Review examples**:
-   ```bash
-   ls -lh examples/
-   ```
-
-3. **Develop your solution**:
-   ```bash
-   python template_solution.py --policy forward --output my_submission.json
-   ```
-
-4. **Test locally** (if evaluator available):
-   ```bash
-   python evaluator.py my_submission.json
-   ```
-
-### For Organizers
-
-1. **Run evaluation**:
-   ```bash
-   python evaluator.py submission.json --output results/
-   ```
-
-2. **Check results**:
-   ```bash
-   cat results/leaderboard.json
-   cat results/summary.txt
-   ```
-
-3. **Analyze per-episode**:
-   ```python
-   import json
-   with open("results/per_episode.json") as f:
-       episodes = json.load(f)
-   ```
-
-## 📝 File Descriptions
-
-### Core Files
-
-| File | Purpose | Audience |
-|------|---------|----------|
-| SUBMISSION_FORMAT.md | JSON schema specification | All participants |
-| EVALUATION_GUIDE.md | How evaluation works & metric interpretation | All participants |
-| STARTER_KIT.md | Development guide with templates | Developers |
-| evaluator.py | Main 5-stage evaluation pipeline | Organizers |
-| config.json | Evaluation parameters & paths | Organizers |
-
-### Supporting Files
-
-| File | Purpose |
-|------|---------|
-| template_solution.py | Starting point for solution development |
-| examples/ | Reference submissions (3 examples) |
-
-## 🔧 Configuration
-
-Edit `config.json` to customize:
-
-```json
-{
-  "paths": {
-    "test_path": "Data/HA-R2R/test.json.gz",
-    "test_gt_path": "Data/HA-R2R/test_gt.json.gz",
-    "collision_stats_path": "Data/HA-R2R-tools/collision_num_{split}.json"
-  },
-  "parameters": {
-    "success_distance": 3.0,      // Goal reached threshold (m)
-    "forward_step_size": 0.25,    // Distance per MOVE_FORWARD (m)
-    "turn_angle": 15              // Angle per turn (degrees)
-  }
-}
-```
-
-## 📊 Evaluation Stages
-
-### Stage 1: Submission Validator
-- Checks JSON structure
-- Validates all required fields
-- Verifies action codes [0-3]
-- Checks episode count
-- **Output**: Pass/Fail + error messages
-
-### Stage 2: Action Replayer
-- Loads GT data
-- Simulates agent movement for each action sequence
-- Records trajectory positions
-- **Output**: Simulated 3D trajectories
-
-### Stage 3: Metric Engine
-- Computes Success (SR)
-- Computes Path Length and SPL (efficiency)
-- Computes nDTW (path alignment)
-- Computes sDTW (success-weighted alignment)
-- Computes collisions, TCR, CR, SR_human (human-aware)
-- **Output**: Per-episode metrics
-
-### Stage 4: Aggregator
-- Computes mean/std/min/max for each metric
-- Aggregates across all episodes
-- **Output**: Summary statistics
-
-### Stage 5: Reporter
-- Generates public leaderboard metrics
-- Saves per-episode details
-- Creates human-readable summary
-- **Output**: JSON reports + summary
-
-## 📈 Metrics Explained
-
-### Public Leaderboard (ranked by)
-
-1. **SR_human** - Success Rate (Human-Aware)
-   - Primary metric
-   - Requires both: reaching goal AND avoiding excess collisions
-   - Range: [0, 1]
-
-2. **SPL** - Success-weighted Path Length
-   - Efficiency metric
-   - Rewards reaching goal with short paths
-   - Range: [0, 1]
-
-3. **nDTW** - Normalized Dynamic Time Warping
-   - Path alignment to reference
-   - Range: [0, 1]
-
-### Additional Metrics (detailed results)
-
-- **Success**: Binary goal reached
-- **Collisions**: Human collision count
-- **TCR**: Total Corrective Reward
-- **sDTW**: Success-weighted DTW
-
-See EVALUATION_GUIDE.md for full descriptions.
-
-## ✅ Submission Requirements
-
-### Format
-- JSON file with `episodes` array
-- One entry per test episode (3408 total)
-- Each entry: `episode_id`, `trajectory_id`, `scene_id`, `actions`
-
-### Actions
-- Array of integers: 0 (STOP), 1 (FORWARD), 2 (LEFT), 3 (RIGHT)
-- Must end with STOP (0)
-- Between 1-500 actions per episode
-
-### Validation
-- No duplicate episode_ids
-- All episodes from official test split
-- Valid action codes only
-- Proper JSON structure
-
-See SUBMISSION_FORMAT.md for examples and detailed rules.
-
-## 🎯 Development Workflow
-
-### Step 1: Understand
+### 2. Download Data
 ```bash
-cat SUBMISSION_FORMAT.md        # Format spec
-cat EVALUATION_GUIDE.md         # How it works
-ls examples/                    # See examples
+# Download HA-R2R and HAPS 2.0 datasets
+bash scripts/download_data.sh
+
+# Download test split (non-GT version for participants)
+# This is included in the download_data.sh script
 ```
 
-### Step 2: Develop
+### 3. Train Your Agent
+Use the provided baseline agents or implement your own:
+
 ```bash
-# Start from template
-python template_solution.py --policy forward --output v1.json
+cd agent
+# Train HA-VLN-CMA baseline
+python run.py --exp-config config/cma_pm_da_aug_tune.yaml --run-type train
 
-# Or integrate with your model
-# (See template_solution.py for integration points)
+# Evaluate on validation splits
+python run.py --exp-config config/cma_pm_da_aug_tune.yaml --run-type eval
 ```
 
-### Step 3: Validate
+### 4. Generate Submission
+Run inference on the test split and generate submission file:
+
 ```bash
-# Check JSON structure
-python -c "import json; f=open('v1.json'); json.load(f); print('OK')"
+# Run inference (you'll need to modify to collect actions)
+python run.py --exp-config config/cma_pm_da_aug_tune.yaml --run-type inference
 
-# Check episode count
-python -c "import json; f=open('v1.json'); d=json.load(f); print(f'Episodes: {len(d[\"episodes\"])}')"
+# Use the submission template to format your results
+python challenge/tools/generate_submission.py --help
 ```
 
-### Step 4: Evaluate (organizers)
+## Evaluation Metrics
+
+The challenge uses four core metrics:
+
+1. **Navigation Error (NE)**: Mean distance between agent's final position and goal
+2. **Success Rate (SR)**: Percentage of episodes completed successfully with zero collisions
+3. **Total Collision Rate (TCR)**: Average collisions in human-occupied zones
+4. **Collision Rate (CR)**: Percentage of episodes with at least one collision
+
+See the [paper](https://arxiv.org/abs/2503.14229) for detailed metric definitions.
+
+## Submission Process
+
+### 1. Prepare Your Submission
+Your submission must be a JSON file following the [Submission Format](SUBMISSION_FORMAT.md). Key requirements:
+- Include all 3408 test episodes
+- Each episode must have 1-500 actions
+- Actions must use codes: 0=STOP, 1=MOVE_FORWARD, 2=TURN_LEFT, 3=TURN_RIGHT
+
+### 2. Validate Your Submission
+Use the provided validation script:
 ```bash
-python evaluator.py v1.json --output results_v1/
-cat results_v1/summary.txt
-python -c "import json; print(json.dumps(json.load(open('results_v1/leaderboard.json')), indent=2))"
+python challenge/tools/validate_submission.py my_submission.json
 ```
 
-### Step 5: Iterate
-- Analyze results
-- Improve model
-- Generate new submission
-- Re-evaluate
+### 3. Submit
+Submit your JSON file through the designated submission portal (to be announced).
 
-## 🐛 Troubleshooting
+## Timeline
 
-### Submission Validation Fails
-- **Check**: SUBMISSION_FORMAT.md for exact schema
-- **Check**: examples/ for correct structure
-- **Check**: All 3408 test episodes present
-- **Check**: Action codes are integers [0-3]
+- **Training Phase**: Participants develop and train agents using train/val splits
+- **Submission Phase**: Participants submit predictions for test split
+- **Evaluation Phase**: Organizers evaluate submissions and compute metrics
+- **Results Announcement**: Leaderboard published with rankings
 
-### Metrics Don't Make Sense
-- **Check**: EVALUATION_GUIDE.md "Interpreting Results"
-- **Check**: per_episode.json for specific failing episodes
-- **Check**: Examples in STARTER_KIT.md
+## Baseline Agents
 
-### Evaluator Crashes
-- **Check**: config.json paths are correct
-- **Check**: test_gt.json.gz exists and readable
-- **Check**: Working directory is workspace root
+The challenge provides several baseline agents:
 
-## 📖 Documentation Map
+1. **Random Agent**: Selects random actions
+2. **Forward-Only Agent**: Always moves forward until max steps
+3. **HA-VLN-CMA**: Cross-Model Attention agent (state-of-the-art baseline)
 
-```
-Getting Started:
-  → SUBMISSION_FORMAT.md
-  → examples/
+Example submissions for these baselines are available in `challenge/examples/`.
 
-Understanding Evaluation:
-  → EVALUATION_GUIDE.md
-  → evaluator.py (code comments)
+## Resources
 
-Developing Solutions:
-  → STARTER_KIT.md
-  → template_solution.py
-  → examples/
+### Datasets
+- **HA-R2R**: Human-Aware Room-to-Room dataset with complex instructions
+- **HAPS 2.0**: Human Activity and Pose Simulation dataset with 3D human motions
+- **Matterport3D**: 90 indoor scenes for navigation
 
-Managing Challenge:
-  → config.json
-  → EVALUATION_GUIDE.md "Running the Evaluator"
-```
+### Code
+- **HA-VLN Simulator**: Real-time human rendering and navigation
+- **Baseline Agents**: Reference implementations
+- **Evaluation Tools**: Validation and submission utilities
 
-## 🔐 Data Privacy
+### Documentation
+- [Technical Paper](https://arxiv.org/abs/2503.14229)
+- [Project Website](https://ha-vln-project.vercel.app/)
+- [GitHub Repository](https://github.com/F1y1113/HA-VLN)
 
-### Test Data Splits
+## Support
 
-- **test.json.gz** (public)
-  - Episode metadata, instructions, reference paths
-  - NO goals (prevents local scoring)
-  - Participants have full access
+For questions about the challenge:
+- Check the [FAQ](SUBMISSION_FORMAT.md#frequently-asked-questions-faq)
+- Review existing documentation
+- Open an issue on the GitHub repository
 
-- **test_gt.json.gz** (private, organizers only)
-  - Contains goals and complete reference paths
-  - Used only by evaluator for scoring
-  - Not shared with participants
+## Important Notes
 
-- **collision_num_test.json** (private, organizers only)
-  - Baseline collision statistics
-  - Used for TCR computation
-  - Prevents gaming the human-aware metric
-
-This design prevents:
-- Local cheating via memorization
-- Leaderboard overfitting
-- Metric gaming
-
-## 📞 Support
-
-### For Participants
-1. Read SUBMISSION_FORMAT.md (format questions)
-2. Read EVALUATION_GUIDE.md (metric questions)
-3. Review examples/ (format examples)
-4. Check STARTER_KIT.md (development help)
-
-### For Organizers
-1. Check evaluator.py code comments
-2. Verify config.json paths
-3. Review EVALUATION_GUIDE.md "Running the Evaluator"
-4. Check troubleshooting section
-
-## 📝 License
-
-See LICENSE file in repository root.
-
-## 🎓 Citation
-
-If using this evaluation system in a paper:
-```bibtex
-@misc{havln_challenge,
-  title={HA-VLN Challenge Evaluation System},
-  year={2024},
-  organization={HA-VLN Team}
-}
-```
-
-## Version History
-
-- **v1.0** (2024-01-15)
-  - Initial 5-stage evaluation system
-  - Support for classic VLN + human-aware metrics
-  - Full documentation and starter kit
+- **Test Ground Truth**: The test split ground truth (`test_gt.json.gz`) is kept private by organizers
+- **Fairness**: All submissions are evaluated on the same private test set
+- **Reproducibility**: Participants should document their methods for reproducibility
+- **Code Release**: Winners may be asked to release code for verification
 
 ---
 
-**Last Updated**: 2024-01-15  
-**Maintained By**: HA-VLN Challenge Team
+**Good luck with the challenge!**
