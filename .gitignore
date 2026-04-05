@@ -6,6 +6,8 @@ download_mp.py
 *events.out.*
 *82500.pt
 *.pdf
+agent-useless/
+docker-compose.yml
 
 # IDE
 .idea/

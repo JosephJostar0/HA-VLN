@@ -1,0 +1,25 @@
+services:
+  simulator:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: havln-sim-h100:v1
+    container_name: havln_simulator
+    shm_size: '16gb'                   # 核心参数：防止 PyTorch 和 Habitat 渲染时内存溢出
+    tty: true                          # 保持容器运行，相当于 docker run 的 -t
+    stdin_open: true                   # 允许交互，相当于 docker run 的 -i
+    volumes:
+      # 【注意】这里要把冒号前面的路径替换成你 H100 宿主机的真实绝对路径
+      - /你的宿主机路径/HA-VLN:/app
+    environment:
+      # 环境变量注入，强制使用无头渲染和 GPU 0
+      - EGL_DEVICE_ID=0
+      - CUDA_VISIBLE_DEVICES=0
+      - DISPLAY=""
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all               # 挂载所有可用 GPU（如果你想只挂载某一张，可以改成具体的 ID）
+              capabilities: [gpu]
