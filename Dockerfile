@@ -30,7 +30,8 @@ RUN pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 \
     --index-url https://download.pytorch.org/whl/cu118
 
 # 6. Install Habitat-Sim (Headless version via Mamba)
-RUN mamba install -y -c aihabitat -c conda-forge "habitat-sim=0.1.7=*headless*"
+RUN mamba install -y -c conda-forge python-lmdb libxcrypt libffi && \
+    mamba install -y -c aihabitat -c conda-forge "habitat-sim=0.1.7=*headless*"
 
 # 7. Setup the working directory and clone the official HA-VLN repository
 WORKDIR /app
@@ -44,7 +45,7 @@ WORKDIR /app/habitat-lab
 RUN sed -i 's/spaces.Discrete(0)/spaces.Discrete(4)/g' habitat/tasks/vln/vln.py
 # Apply patch 2: Downgrade setuptools to avoid use_2to3 build errors in legacy code
 RUN pip install --upgrade pip wheel Cython && \
-    pip install setuptools==59.5.0 msgpack "numpy<1.24.0" tensorboard && \
+    pip install setuptools==59.5.0 msgpack "numpy<1.24.0" tensorboard lmdb && \
     sed -i 's/tensorflow==1.13.1/# tensorflow==1.13.1/g' habitat_baselines/rl/requirements.txt && \
     pip install -r requirements.txt && \
     pip install -r habitat_baselines/rl/requirements.txt && \
@@ -54,19 +55,23 @@ RUN pip install --upgrade pip wheel Cython && \
 WORKDIR /app/HASimulator
 RUN git clone https://github.com/IDEA-Research/GroundingDINO.git
 WORKDIR /app/HASimulator/GroundingDINO
+
+ENV CUDA_HOME=/usr/local/cuda
+ENV FORCE_CUDA=1
+ENV TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0"
+
 # Clean build cache and install
 RUN rm -rf build/ dist/ *.egg-info && \
     pip install "safetensors==0.3.1" "huggingface-hub==0.16.4" "tokenizers==0.13.3" "transformers==4.30.2" "timm==0.9.2" && \
     sed -i 's/supervision.*/supervision==0.11.1/g' requirements.txt && \
     pip install ninja && \
+    python setup.py build_ext --inplace && \
     pip install -e . && \
     mkdir weights && cd weights && \
     wget -q --no-check-certificate https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
-
 # 10. Install HA-VLN Simulator dependencies
 WORKDIR /app
 RUN pip install "Pillow<9.0.0" webdataset==0.1.40
-RUN cd HASimulator && pip install -e .
 
 # 11. Final environment configuration
 # Ensure the user's agent directory and Data directory exist as mount points
@@ -87,3 +92,8 @@ RUN chmod -R 555 /app/habitat-lab /app/HASimulator
 WORKDIR /app
 RUN echo "source activate havlnce" >> ~/.bashrc
 CMD ["/bin/bash"]
+
+# Provide NVIDIA EGL routing for libglvnd to fix offscreen rendering issues in pure CUDA images
+RUN mkdir -p /usr/share/glvnd/egl_vendor.d/ && \
+    echo '{"file_format_version" : "1.0.0", "ICD" : {"library_path" : "libEGL_nvidia.so.0"}}' > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+ENV __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json

@@ -11,7 +11,7 @@ services:
   evaluator:
     image: your_org/havln-eval-image:v1    # Official evaluation image name
     container_name: havln_challenge_eval
-    shm_size: '16gb'                       # Optional: Prevents shared memory overflow during high-res rendering or multi-process RL
+    # shm_size: '16gb'                       # Optional: Prevents shared memory overflow during high-res rendering or multi-process RL
     
     # Execute the participant's startup script
     command: bash /app/agent/run.sh
@@ -21,6 +21,11 @@ services:
       - EGL_DEVICE_ID=0
       - CUDA_VISIBLE_DEVICES=0
       - DISPLAY=""
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - HABITAT_SIM_V0_PIN_EGL_DEVICE=1
+      - __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json
+      - __GLX_VENDOR_LIBRARY_NAME=nvidia
+      - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libEGL.so.1:/usr/lib/x86_64-linux-gnu/libGLdispatch.so.0
       
     volumes:
       # 1. Test set mount (Official hidden data / Participant's local data) -> Forced Read-Only (:ro)
@@ -40,5 +45,5 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1                 # Evaluation default allocation: 1 GPU
-              capabilities: [gpu]
+              count: all
+              capabilities: [all]
