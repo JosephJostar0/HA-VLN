@@ -1,77 +1,83 @@
-# 🏆 HA-VLN Challenge 2026: Local Evaluation Guide
+# HA-VLN Challenge 2026 Docker Guide
 
-Welcome to the HA-VLN Challenge! To ensure fairness and reproducibility, all submissions will be evaluated inside an isolated, standardized Docker container on an NVIDIA H100 (sm_90) cluster.
+This repository's Docker workflow is based on the official prebuilt image used for challenge evaluation. The local participant setup and the official evaluator stay aligned at the compose level, while the mounted `Data` content differs between participant-side local testing and organizer-side final scoring.
 
-This guide will help you set up the official Docker environment locally so you can test your agent before submitting it to EvalAI.
+## Evaluation Image
 
-## 🧱 The Evaluation Environment
-
-The official evaluation image (`havln-eval-image:v1`) contains:
-- **OS & Hardware drivers**: Ubuntu 22.04, CUDA 11.8, and required EGL headless rendering libraries.
-- **Python Environment**: A pre-configured Conda environment (`havlnce`) with Python 3.8 and PyTorch 2.0.1.
-- **Locked Official Code**: Pre-installed and patched `habitat-lab`, `habitat-sim`, and the official `HASimulator`. **These directories are Read-Only (chmod 555) to prevent runtime modifications.**
-
-## 📦 How Submissions Work (Bring Your Own Agent)
-
-We allow participants to use **any agent architecture**. You do not need to strictly follow our baseline. 
-
-You only need to submit a `submission.zip` file containing your agent code, model weights, and a starting script named `run.sh`. 
-
-### Submission Directory Structure
-Your `submission.zip` must unzip to the following structure:
-```text
-submission/
-├── run.sh             # The main executable script (Must be named run.sh)
-├── requirements.txt   # (Optional) If your agent needs extra pip packages
-├── your_agent.py      # Your custom policy/agent logic
-├── weights/           # Your pre-trained model weights
-└── ...                # Any other necessary scripts
-```
-
-## 🧪 Testing Your Agent Locally (Highly Recommended)
-
-We use a **Modular Mounting Strategy**. During evaluation, the container will mount your code, the hidden test data, and the output directory into specific locations.
-
-### Step 1: Pull/Build the Evaluation Image
-*(Assuming the image is uploaded to DockerHub)*
-```bash
-docker pull your_org/havln-eval-image:v1
-```
-
-### Step 2: Run the Local Evaluation
-To simulate the exact evaluation process, run the following Docker command. Make sure to replace the `/path/to/...` with your actual local absolute paths.
+Pull the official image before running the compose service:
 
 ```bash
-docker run --rm -it \
-    --gpus all \
-    --runtime=nvidia \
-    -v /path/to/your/local/Data:/app/Data:ro \
-    -v /path/to/your/submission:/app/agent:ro \
-    -v /path/to/your/output_dir:/app/result:rw \
-    your_org/havln-eval-image:v1 \
-    bash /app/agent/run.sh
+docker pull ghcr.io/josephjostar0/havln-eval-image:latest
 ```
 
-### Important Notes on Paths:
-1. **Data (`/app/Data:ro`)**: Your code should always read datasets from `../Data/` or `/app/Data/`. It is mounted as **Read-Only**.
-2. **Agent (`/app/agent:ro`)**: Your submission is mounted as **Read-Only**. Your code cannot write files to its own directory during runtime.
-3. **Result (`/app/result:rw`)**: The official `HASimulator` evaluator will automatically generate `result.json` here. If your agent needs to save logs, write them to `/app/result/`.
-
-## ⚙️ Example `run.sh`
-
-Your `run.sh` will be executed directly by the evaluator. Here is a baseline example:
+The compose template is defined in `docker-compose-template.yml`. Copy it to `docker-compose.yml`, then replace the host-side paths in `volumes` with your absolute local paths:
 
 ```bash
-#!/bin/bash
-
-# 1. Activate the official environment
-source activate havlnce
-
-# 2. (Optional) Install your specific agent dependencies
-# pip install -r /app/agent/requirements.txt
-
-# 3. Run your agent inference
-# Note: The official simulator will automatically intercept the 'done' signal 
-# and write the final metrics to /app/result/result.json
-python /app/agent/your_agent.py --cfg /app/agent/configs/test.yaml
+cp docker-compose-template.yml docker-compose.yml
 ```
+
+## Configure Mounts
+
+The compose service mounts three participant-controlled paths:
+
+1. `Data -> /app/Data:ro`
+   The dataset and simulator assets used by the mounted challenge environment. This mount is read-only. Participant-side local packages are expected to contain the public data needed for development and validation, such as `train`, `val_seen`, and `val_unseen`.
+2. `agent -> /app/agent:rw`
+   Your submission directory. The container starts from `/app/agent/run.sh`. It is mounted read-write in the current validated setup, so your code can create temporary files here if needed.
+3. `result -> /app/result:rw`
+   A writable output directory intended for exported predictions, logs, or copied final artifacts.
+
+The current compose configuration keeps the official simulator stack inside the image and mounts only participant inputs and outputs from the host.
+
+After updating the mount paths, start the evaluation container with:
+
+```bash
+docker compose up
+```
+
+The image contains the official simulator stack and its required runtime dependencies. Baseline agents may be documented elsewhere in this repository, but they are not packaged into this challenge Docker image. If your submission needs extra Python packages or other runtime setup, do that from `/app/agent/run.sh`.
+
+## Manual Debugging Inside The Container
+
+The service normally runs:
+
+```bash
+bash /app/agent/run.sh
+```
+
+If you want an interactive shell instead of immediately executing `run.sh`, override the service entrypoint:
+
+```bash
+docker compose run --rm --entrypoint bash evaluator
+```
+
+This is the recommended way to inspect the mounted files, verify Python environments, and manually debug your own submission inside the official image.
+
+Before debugging your agent inside the container, do not forget to install the dependencies required by your own submission, for example from your agent's `requirements.txt`.
+
+For example, after entering the container you can inspect the default environment and your mounted submission with commands such as:
+
+```bash
+cd /app
+conda env list
+ls /app/agent
+```
+
+## Public Data Versus Final Scoring Data
+
+Participants should assume they only receive the public development data needed for training and validation, namely the public training split and the public seen/unseen validation splits.
+
+Final scoring is performed by the organizers with separate non-public data mounted into the same `/app/Data` location. Participant documentation should treat that scoring data as internal and not rely on any private split details.
+
+## Submission Expectations
+
+The exact submission package format and scoring interface are still TBA and may change as the automated evaluation pipeline is finalized.
+
+Your submission directory should include a `run.sh` entry script. That script is the right place to:
+
+- activate environments if needed
+- install extra dependencies required by your own agent
+- launch your own submission logic
+- redirect outputs to `/app/result` when you want artifacts copied back to the host
+
+The challenge Docker image is intentionally focused on simulator compatibility and evaluation stability, not on pre-packaging every possible participant agent environment.

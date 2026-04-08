@@ -8,6 +8,10 @@ download_mp.py
 *.pdf
 agent-useless/
 docker-compose.yml
+AGENTS.md
+Dockerfile
+*codex*
+nohup.out
 
 # IDE
 .idea/

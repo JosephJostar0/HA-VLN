@@ -1,0 +1,36 @@
+# Keep the Docker build context focused on the challenge runtime sources.
+.git
+.gitmodules
+.codex
+.vscode
+.idea
+AGENTS.md
+Data
+agent
+demo
+output
+outputs
+subs
+logs
+vis
+tmp
+temp*
+*.pdf
+
+# Ignore VCS metadata and build artifacts inside vendored dependencies.
+**/.git
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.so
+**/*.egg-info
+**/.pytest_cache
+
+# GroundingDINO local development artifacts that are not required at runtime.
+HASimulator/GroundingDINO/build
+HASimulator/GroundingDINO/dist
+HASimulator/GroundingDINO/.asset
+
+# Local compose overrides and unrelated helper files.
+docker-compose.yml
