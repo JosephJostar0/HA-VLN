@@ -29,9 +29,10 @@ services:
       - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libEGL.so.1:/usr/lib/x86_64-linux-gnu/libGLdispatch.so.0
 
     volumes:
-      # 1. Challenge Data Mount -> Forced Read-Only (:ro)
+      # 1. Challenge Data Mount -> Read-Write (:rw)
       # [MODIFY THIS] Replace the left side with your absolute path to the Data directory
-      - /path/to/your/local/Data:/app/Data:ro
+      # This mount must stay writable because HA-VLN may generate mesh-related artifacts under Data.
+      - /path/to/your/local/Data:/app/Data:rw
 
       # 2. Submission/Agent Mount -> Read-Write (:rw) to match the current validated server setup
       # [MODIFY THIS] Replace the left side with your absolute path to the unzipped submission
