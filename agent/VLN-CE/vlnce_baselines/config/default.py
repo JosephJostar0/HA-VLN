@@ -24,6 +24,10 @@ _C.VIDEO_OPTION = []  # options: "disk", "tensorboard"
 _C.VIDEO_DIR = "VLN-CE/data/videos/debug"
 _C.TENSORBOARD_DIR = "VLN-CE/data/tensorboard_dirs/debug"
 _C.RESULTS_DIR = "VLN-CE/data/checkpoints/pretrained/evals"
+_C.CHALLENGE_AGENT = CN()
+_C.CHALLENGE_AGENT.MODULE = ""
+_C.CHALLENGE_AGENT.FACTORY_FN = "build_agent"
+_C.CHALLENGE_AGENT.CONFIG = CN()
 
 # ----------------------------------------------------------------------------
 # EVAL CONFIG

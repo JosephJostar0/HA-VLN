@@ -3,21 +3,29 @@
 import argparse
 import os
 import random
+import sys
 
 import numpy as np
 import torch
 from habitat import logger
 from habitat_baselines.common.baseline_registry import baseline_registry
 
-import sys
-sys.path.append('./VLN-CE')
+
+AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
+VLN_CE_DIR = os.path.join(AGENT_DIR, "VLN-CE")
+REPO_ROOT = os.path.dirname(AGENT_DIR)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+if AGENT_DIR not in sys.path:
+    sys.path.insert(0, AGENT_DIR)
+if VLN_CE_DIR not in sys.path:
+    sys.path.insert(0, VLN_CE_DIR)
+
 import habitat_extensions  # noqa: F401
 import vlnce_baselines  # noqa: F401
+from eval import evaluate_submission
 from vlnce_baselines.config.default import get_config
-from vlnce_baselines.nonlearning_agents import (
-    evaluate_agent,
-    nonlearning_inference,
-)
+from vlnce_baselines.nonlearning_agents import nonlearning_inference
 
 
 def main():
@@ -42,17 +50,21 @@ def main():
     )
 
     args = parser.parse_args()
-    run_exp(**vars(args))
+    try:
+        run_exp(**vars(args))
+    except (
+        AssertionError,
+        FileNotFoundError,
+        ImportError,
+        ModuleNotFoundError,
+        ValueError,
+    ) as exc:
+        raise SystemExit(f"Challenge evaluation failed: {exc}") from None
 
 
 def run_exp(exp_config: str, run_type: str, opts=None) -> None:
-    """Runs experiment given mode and config
-
-    Args:
-        exp_config: path to config file.
-        run_type: "train" or "eval.
-        opts: list of strings of additional config options.
-    """
+    """Runs experiment given mode and config."""
+    os.chdir(AGENT_DIR)
     config = get_config(exp_config, opts)
     logger.info(f"config: {config}")
     logdir = "/".join(config.LOG_FILE.split("/")[:-1])
@@ -70,9 +82,8 @@ def run_exp(exp_config: str, run_type: str, opts=None) -> None:
 
     if run_type == "eval":
         torch.backends.cudnn.deterministic = True
-        if config.EVAL.EVAL_NONLEARNING:
-            evaluate_agent(config)
-            return
+        evaluate_submission(config)
+        return
 
     if run_type == "inference" and config.INFERENCE.INFERENCE_NONLEARNING:
         nonlearning_inference(config)
@@ -84,8 +95,6 @@ def run_exp(exp_config: str, run_type: str, opts=None) -> None:
 
     if run_type == "train":
         trainer.train()
-    elif run_type == "eval":
-        trainer.eval()
     elif run_type == "inference":
         trainer.inference()
 

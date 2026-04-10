@@ -1,0 +1,25 @@
+BASE_TASK_CONFIG_PATH: ../HASimulator/config/HAVLNCE_task.yaml
+SIMULATOR_GPU_IDS: [0]
+TORCH_GPU_ID: 0
+NUM_ENVIRONMENTS: 1
+RESULTS_DIR: data/checkpoints/challenge_submission/evals
+LOG_FILE: data/logs/challenge_eval.log
+
+CHALLENGE_AGENT:
+  MODULE: submission.baseline_cma_adapter
+  CONFIG:
+    CKPT_PATH: VLN-CE/data/checkpoints/cma_pm_da_aug_tune/CMA_PM_DA_Aug.pth
+
+EVAL:
+  SPLIT: val_unseen
+  EPISODE_COUNT: -1
+  LANGUAGES: ["en-US", "en-IN"]
+
+MODEL:
+  policy_name: CMAPolicy
+
+  INSTRUCTION_ENCODER:
+    bidirectional: True
+
+  PROGRESS_MONITOR:
+    use: True
