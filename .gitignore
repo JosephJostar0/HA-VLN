@@ -1,3 +1,6 @@
+run.sh
+automatic_scoring_design.md
+challenge_next.md
 archived/
 temp.*
 Data/
@@ -10,7 +13,10 @@ download_mp.py
 agent-useless/
 docker-compose.yml
 AGENTS.md
+skills/
 Dockerfile
+.dockerignore
+vln_docker
 *codex*
 nohup.out
 

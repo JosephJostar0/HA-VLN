@@ -58,10 +58,15 @@ class HAVLNCEDaggerEnv(VLNCEDaggerEnv):
 
         :return: initial observations from the environment.
         """
+        logger.info("[debug] HAVLNCEDaggerEnv.reset enter")
         if self._env._config.SIMULATOR.ADD_HUMAN:
+            logger.info("[debug] calling havlnce_tool.reset")
             self.havlnce_tool.reset()
+            logger.info("[debug] havlnce_tool.reset finished")
 
+        logger.info("[debug] calling super().reset")
         observations = super().reset()
+        logger.info("[debug] super().reset finished")
 
         return observations
     

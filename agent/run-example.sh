@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -eo pipefail
 
 AGENT_ROOT="/app/agent"
 CONFIG_PATH="${AGENT_ROOT}/config/challenge_submission.yaml"
+
+source /opt/conda/etc/profile.d/conda.sh
+conda activate havlnce
+set -u
 
 cd "${AGENT_ROOT}"
 
@@ -12,13 +16,10 @@ if [[ ! -f "${CONFIG_PATH}" ]]; then
   exit 1
 fi
 
-RESULT_OPTS=()
-if [[ -d "/app/result" ]]; then
-  RESULT_OPTS+=("RESULTS_DIR" "/app/result")
-  RESULT_OPTS+=("LOG_FILE" "/app/result/challenge_eval.log")
-fi
+mkdir -p /app/result
 
 python "${AGENT_ROOT}/run.py" \
   --run-type eval \
   --exp-config "${CONFIG_PATH}" \
-  "${RESULT_OPTS[@]}"
+  RESULTS_DIR /app/result \
+  LOG_FILE /app/result/challenge_eval.log

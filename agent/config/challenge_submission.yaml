@@ -2,8 +2,8 @@ BASE_TASK_CONFIG_PATH: ../HASimulator/config/HAVLNCE_task.yaml
 SIMULATOR_GPU_IDS: [0]
 TORCH_GPU_ID: 0
 NUM_ENVIRONMENTS: 1
-RESULTS_DIR: data/checkpoints/challenge_submission/evals
-LOG_FILE: data/logs/challenge_eval.log
+RESULTS_DIR: /app/result
+LOG_FILE: /app/result/challenge_eval.log
 
 CHALLENGE_AGENT:
   MODULE: submission.baseline_cma_adapter

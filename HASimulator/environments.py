@@ -16,6 +16,7 @@ import os
 import threading
 import queue
 import time
+import traceback
 import magnum as mn
 import random
 from habitat.core.logging import logger
@@ -144,7 +145,10 @@ class HAVLNCE():
                         self._sim.pathfinder.load_nav_mesh(navmesh_path)
                     
         except Exception as e:
-            logger.error(f"An error occurred while handling signals: {e}")
+            logger.error(
+                "An error occurred while handling signals: "
+                f"{type(e).__name__}: {repr(e)}\n{traceback.format_exc()}"
+            )
 
     def refresh_human_model(self, frame_id):
         """Method to refresh the human model (remove previous and add new one)."""
